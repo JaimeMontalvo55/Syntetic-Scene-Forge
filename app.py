@@ -73,6 +73,29 @@ def _zip_directory(directory: Path) -> bytes:
     return archive.getvalue()
 
 
+def _show_downloads(output_path: Path) -> None:
+    if not output_path.exists():
+        return
+    dataset_zip = _zip_directory(output_path)
+    config_path = output_path / "generation_config.json"
+    st.download_button(
+        "Download complete dataset (ZIP)",
+        data=dataset_zip,
+        file_name="synthetic_dataset.zip",
+        mime="application/zip",
+        key="download_dataset_zip",
+        help="Downloads images, labels, masks, metadata, COCO annotations, reports and configuration.",
+    )
+    if config_path.is_file():
+        st.download_button(
+            "Download generation configuration",
+            data=config_path.read_bytes(),
+            file_name="generation_config.json",
+            mime="application/json",
+            key="download_generation_config",
+        )
+
+
 def _run_generation(job, config, models, classes, backgrounds, plan, background_mode):
     def update_progress(done, total, message):
         job["done"] = done
@@ -605,23 +628,10 @@ if job:
             st.success(f"Generation complete: {job['result']['generated']} images.")
             st.json(job["result"])
             output_path = Path(job["output_dir"])
-            if output_path.exists():
-                dataset_zip = _zip_directory(output_path)
-                config_path = output_path / "generation_config.json"
-                st.download_button(
-                    "Download complete dataset (ZIP)",
-                    data=dataset_zip,
-                    file_name="synthetic_dataset.zip",
-                    mime="application/zip",
-                    help="Downloads images, labels, masks, metadata, COCO annotations, reports and configuration.",
-                )
-                if config_path.is_file():
-                    st.download_button(
-                        "Download generation configuration",
-                        data=config_path.read_bytes(),
-                        file_name="generation_config.json",
-                        mime="application/json",
-                    )
+            st.session_state.generation_result = {
+                "result": job["result"],
+                "output_dir": str(output_path),
+            }
             st.subheader("Generated folders and files")
             coco_links = [
                 f"- {_folder_link(path.name, path)}"
@@ -645,3 +655,7 @@ if job:
 st.header("7. Results and export")
 st.info("The output folder contains images/train, images/val, images/test, labels, masks, depth, COCO annotations, reports, data.yaml and generation_config.json.")
 st.caption("Default path: C:\\Users\\jaime\\synthetic-dataset-generator\\outputs\\dataset")
+saved_generation = st.session_state.get("generation_result")
+if saved_generation and Path(saved_generation["output_dir"]).exists():
+    st.success("The generated dataset is ready to download.")
+    _show_downloads(Path(saved_generation["output_dir"]))
