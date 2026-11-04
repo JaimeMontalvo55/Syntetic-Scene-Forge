@@ -1,0 +1,36 @@
+{
+  "output_dir": "outputs/dataset",
+  "width": 640,
+  "height": 480,
+  "num_scenes": 10,
+  "train_ratio": 0.8,
+  "val_ratio": 0.2,
+  "test_ratio": 0.0,
+  "negative_ratio": 0.0,
+  "save_masks": true,
+  "min_separation_px": 30,
+  "max_attempts_multiplier": 30,
+  "object_distance_mean_m": 3.5,
+  "object_distance_min_m": 3.0,
+  "object_distance_max_m": 4.0,
+  "object_brightness_min": 0.45,
+  "object_brightness_max": 0.85,
+  "rotation_axes_by_class": {
+    "objeto": ["x", "y", "z"]
+  },
+  "rotation_step_by_class_deg": {
+    "objeto": 45
+  },
+  "initial_rotation_by_class_deg": {
+    "objeto": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    }
+  },
+  "x_min": -0.9,
+  "x_max": 0.9,
+  "y_min": -0.65,
+  "y_max": 0.65,
+  "seed": 42
+}
