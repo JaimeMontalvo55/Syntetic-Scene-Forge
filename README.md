@@ -7,6 +7,10 @@ and `train`/`val` split workflow.
 
 The project does not contain ROS, perception nodes, or detectors.
 
+## License
+
+This project is released under the MIT License. See [LICENSE](LICENSE).
+
 ## Installation
 
 ```powershell
