@@ -1,7 +1,8 @@
 .venv/
 __pycache__/
 *.py[cod]
-.streamlit/
+.streamlit/*
+!.streamlit/config.toml
 outputs/
 uploads/
 *.log

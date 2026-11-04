@@ -1,5 +1,8 @@
 import os
 
+if os.name != "nt" and "PYOPENGL_PLATFORM" not in os.environ:
+    os.environ["PYOPENGL_PLATFORM"] = "egl"
+
 import pyrender
 
 from pyrender.constants import MIN_OPEN_GL_MAJOR, MIN_OPEN_GL_MINOR
@@ -44,9 +47,9 @@ class WindowsPygletPlatform(PygletPlatform):
                     finally:
                         self._window = None
         raise RuntimeError(
-            "No se pudo crear el contexto OpenGL de Windows. "
-            "Actualiza el controlador gráfico o ejecuta la aplicación "
-            "en un sistema con OpenGL 3.3."
+            "Could not create the Windows OpenGL context. "
+            "Update the graphics driver or run the application "
+            "on a system with OpenGL 3.3."
         ) from last_error
 
 
@@ -86,8 +89,7 @@ def create_offscreen_renderer(width: int, height: int) -> pyrender.OffscreenRend
         except Exception as error:
             last_error = error
     raise RuntimeError(
-        "No se pudo inicializar el renderizado offscreen. "
-        "Comprueba que la aceleración gráfica esté activa y que no haya "
-        "otra sesión bloqueando el contexto OpenGL. "
-        f"Detalle técnico: {last_error}"
+        "Could not initialize offscreen rendering. "
+        "Check that OpenGL/EGL is available and that no other session "
+        f"is blocking the rendering context. Technical detail: {last_error}"
     ) from last_error

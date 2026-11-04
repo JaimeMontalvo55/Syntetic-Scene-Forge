@@ -34,6 +34,19 @@ The project pins `pyglet<2` because it is compatible with `pyrender 0.1.x`.
 .\.venv\Scripts\python.exe -m streamlit run app.py
 ```
 
+## Deploying on Streamlit Community Cloud
+
+1. Push this repository to GitHub.
+2. Open [share.streamlit.io](https://share.streamlit.io/).
+3. Select **New app**, choose this repository and the `master` branch.
+4. Set the main file to `app.py`.
+5. Deploy the app.
+
+The repository includes `packages.txt` for the Linux EGL/OpenGL libraries
+required by the offscreen renderer and `.streamlit/config.toml` for headless
+server settings. Streamlit Cloud storage is ephemeral, so generated datasets
+should be downloaded before the app restarts or the session ends.
+
 The application supports any number of STL files, class names, random colors,
 images and videos, generation settings, and output in `images`, `labels`,
 `depth`, `previews`, `reports`, and `data.yaml`. Object distribution per image
