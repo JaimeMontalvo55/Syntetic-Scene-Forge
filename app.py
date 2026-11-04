@@ -36,6 +36,8 @@ if "generation_job" not in st.session_state:
     st.session_state.generation_job = None
 if "generation_result" not in st.session_state:
     st.session_state.generation_result = None
+if "generation_error" not in st.session_state:
+    st.session_state.generation_error = None
 
 
 def help_text(text: str) -> str:
@@ -73,11 +75,19 @@ def _zip_directory(directory: Path) -> bytes:
     return archive.getvalue()
 
 
-def _show_downloads(output_path: Path) -> None:
-    if not output_path.exists():
-        return
-    dataset_zip = _zip_directory(output_path)
-    config_path = output_path / "generation_config.json"
+def _show_downloads(
+    output_path: Path,
+    dataset_zip: bytes | None = None,
+    config_data: bytes | None = None,
+) -> None:
+    if dataset_zip is None:
+        if not output_path.exists():
+            return
+        dataset_zip = _zip_directory(output_path)
+    if config_data is None:
+        config_path = output_path / "generation_config.json"
+        if config_path.is_file():
+            config_data = config_path.read_bytes()
     st.download_button(
         "Download complete dataset (ZIP)",
         data=dataset_zip,
@@ -86,10 +96,10 @@ def _show_downloads(output_path: Path) -> None:
         key="download_dataset_zip",
         help="Downloads images, labels, masks, metadata, COCO annotations, reports and configuration.",
     )
-    if config_path.is_file():
+    if config_data is not None:
         st.download_button(
             "Download generation configuration",
-            data=config_path.read_bytes(),
+            data=config_data,
             file_name="generation_config.json",
             mime="application/json",
             key="download_generation_config",
@@ -605,6 +615,7 @@ if st.button("Generate dataset", type="primary"):
             )
             st.session_state.generation_job = job
             st.session_state.generation_result = None
+            st.session_state.generation_error = None
             job["thread"].start()
             st.rerun()
         except (RuntimeError, ValueError, OSError) as error:
@@ -624,6 +635,7 @@ if job:
         st.rerun()
     elif job["error"]:
         st.error(job["error"])
+        st.session_state.generation_error = job["error"]
         st.session_state.generation_job = None
     elif job["result"] is not None:
         if job["cancel_event"].is_set():
@@ -635,6 +647,12 @@ if job:
             st.session_state.generation_result = {
                 "result": job["result"],
                 "output_dir": str(output_path),
+                "dataset_zip": _zip_directory(output_path),
+                "config_data": (
+                    (output_path / "generation_config.json").read_bytes()
+                    if (output_path / "generation_config.json").is_file()
+                    else None
+                ),
             }
             st.subheader("Generated folders and files")
             coco_links = [
@@ -653,7 +671,6 @@ if job:
                     f"- {_folder_link('Generation configuration', output_path / 'generation_config.json')}",
                 ] + coco_links)
             )
-        st.session_state.generation_result = job["result"]
         st.session_state.generation_job = None
 
 st.header("7. Results and export")
@@ -665,9 +682,15 @@ saved_output_path = (
     if saved_generation
     else output_dir
 )
-if saved_generation and _dataset_is_ready(saved_output_path):
+if st.session_state.get("generation_error"):
+    st.error(f"Generation failed: {st.session_state.generation_error}")
+elif saved_generation and saved_generation.get("dataset_zip"):
     st.success("The generated dataset is ready to download.")
-    _show_downloads(saved_output_path)
+    _show_downloads(
+        saved_output_path,
+        saved_generation["dataset_zip"],
+        saved_generation.get("config_data"),
+    )
 elif _dataset_is_ready(output_dir):
     st.success("A completed dataset was found in the output folder.")
     _show_downloads(output_dir)
