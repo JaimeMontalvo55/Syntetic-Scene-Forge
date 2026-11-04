@@ -96,6 +96,10 @@ def _show_downloads(output_path: Path) -> None:
         )
 
 
+def _dataset_is_ready(output_path: Path) -> bool:
+    return (output_path / "reports" / "generation_report.json").is_file()
+
+
 def _run_generation(job, config, models, classes, backgrounds, plan, background_mode):
     def update_progress(done, total, message):
         job["done"] = done
@@ -656,6 +660,16 @@ st.header("7. Results and export")
 st.info("The output folder contains images/train, images/val, images/test, labels, masks, depth, COCO annotations, reports, data.yaml and generation_config.json.")
 st.caption("Default path: C:\\Users\\jaime\\synthetic-dataset-generator\\outputs\\dataset")
 saved_generation = st.session_state.get("generation_result")
-if saved_generation and Path(saved_generation["output_dir"]).exists():
+saved_output_path = (
+    Path(saved_generation["output_dir"])
+    if saved_generation
+    else output_dir
+)
+if saved_generation and _dataset_is_ready(saved_output_path):
     st.success("The generated dataset is ready to download.")
-    _show_downloads(Path(saved_generation["output_dir"]))
+    _show_downloads(saved_output_path)
+elif _dataset_is_ready(output_dir):
+    st.success("A completed dataset was found in the output folder.")
+    _show_downloads(output_dir)
+else:
+    st.caption("Generate a dataset to enable the download buttons.")
