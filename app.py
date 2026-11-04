@@ -1,8 +1,10 @@
 from pathlib import Path
+from io import BytesIO
 import sys
 import tempfile
 import threading
 import time
+from zipfile import ZIP_DEFLATED, ZipFile
 from math import ceil
 
 import streamlit as st
@@ -60,6 +62,15 @@ def _remove_generated_files(output_dir: Path, files_before: set[Path]) -> None:
 
 def _folder_link(label: str, path: Path) -> str:
     return f"[{label}]({path.resolve().as_uri()})"
+
+
+def _zip_directory(directory: Path) -> bytes:
+    archive = BytesIO()
+    with ZipFile(archive, "w", ZIP_DEFLATED) as zip_file:
+        for path in sorted(directory.rglob("*")):
+            if path.is_file():
+                zip_file.write(path, path.relative_to(directory))
+    return archive.getvalue()
 
 
 def _run_generation(job, config, models, classes, backgrounds, plan, background_mode):
@@ -594,6 +605,23 @@ if job:
             st.success(f"Generation complete: {job['result']['generated']} images.")
             st.json(job["result"])
             output_path = Path(job["output_dir"])
+            if output_path.exists():
+                dataset_zip = _zip_directory(output_path)
+                config_path = output_path / "generation_config.json"
+                st.download_button(
+                    "Download complete dataset (ZIP)",
+                    data=dataset_zip,
+                    file_name="synthetic_dataset.zip",
+                    mime="application/zip",
+                    help="Downloads images, labels, masks, metadata, COCO annotations, reports and configuration.",
+                )
+                if config_path.is_file():
+                    st.download_button(
+                        "Download generation configuration",
+                        data=config_path.read_bytes(),
+                        file_name="generation_config.json",
+                        mime="application/json",
+                    )
             st.subheader("Generated folders and files")
             coco_links = [
                 f"- {_folder_link(path.name, path)}"

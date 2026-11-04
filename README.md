@@ -63,6 +63,11 @@ files created during that run are deleted without removing files that already
 existed in the output folder. Combined mode alternates between random colors
 and image or video scenes.
 
+After generation, use **Download complete dataset (ZIP)** to download all
+images, labels, masks, metadata, COCO annotations, reports, and configuration.
+This download is required when using Streamlit Community Cloud because its
+generated files are stored temporarily on the app server.
+
 Depth position is configured in meters: mean distance is the center of the
 triangular distribution, while minimum and maximum distances define its
 bounds. STL files are automatically normalized so their largest dimension is
