@@ -107,7 +107,7 @@ def _show_downloads(
 
 
 def _dataset_is_ready(output_path: Path) -> bool:
-    return (output_path / "reports" / "generation_report.json").is_file()
+    return output_path.exists() and any(path.is_file() for path in output_path.rglob("*"))
 
 
 def _run_generation(job, config, models, classes, backgrounds, plan, background_mode):
@@ -692,7 +692,8 @@ elif saved_generation and saved_generation.get("dataset_zip"):
         saved_generation.get("config_data"),
     )
 elif _dataset_is_ready(output_dir):
-    st.success("A completed dataset was found in the output folder.")
+    file_count = len(_output_files(output_dir))
+    st.success(f"Generated dataset found: {file_count} files available for download.")
     _show_downloads(output_dir)
 else:
-    st.caption("Generate a dataset to enable the download buttons.")
+    st.caption("Generate a dataset to enable the download buttons. The buttons appear here as soon as output files are available.")
