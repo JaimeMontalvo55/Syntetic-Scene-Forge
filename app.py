@@ -498,6 +498,7 @@ with preview_expander:
                 object_brightness_max=preview_brightness_max,
                 negative_ratio=0.0,
                 save_masks=save_masks,
+                min_separation_px=min_separation,
                 rotation_axes_by_class=rotation_axes_by_class,
                 rotation_step_by_class_deg=rotation_step_by_class_deg,
                 initial_rotation_by_class_deg=initial_rotation_by_class_deg,
