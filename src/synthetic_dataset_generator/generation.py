@@ -150,13 +150,17 @@ def _coco_scene_annotations(
 
 
 def _separated(boxes: dict[str, tuple[int, int, int, int]], minimum: int) -> bool:
+    if minimum <= 0 or len(boxes) < 2:
+        return True
     names = list(boxes)
     for index, first in enumerate(names):
         ax1, ay1, ax2, ay2 = boxes[first]
         for second in names[index + 1:]:
             bx1, by1, bx2, by2 = boxes[second]
-            distance = ((max(ax1 - bx2, bx1 - ax2, 0)) ** 2 + (max(ay1 - by2, by1 - ay2, 0)) ** 2) ** 0.5
-            if distance < minimum:
+            horizontal_gap = max(ax1 - bx2 - 1, bx1 - ax2 - 1, 0)
+            vertical_gap = max(ay1 - by2 - 1, by1 - ay2 - 1, 0)
+            edge_distance = (horizontal_gap**2 + vertical_gap**2) ** 0.5
+            if edge_distance < minimum:
                 return False
     return True
 

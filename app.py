@@ -38,6 +38,8 @@ if "generation_result" not in st.session_state:
     st.session_state.generation_result = None
 if "generation_error" not in st.session_state:
     st.session_state.generation_error = None
+if "session_output_dir" not in st.session_state:
+    st.session_state.session_output_dir = Path(tempfile.mkdtemp(prefix="synthetic_scene_forge_"))
 
 
 def help_text(text: str) -> str:
@@ -137,11 +139,16 @@ def _run_generation(job, config, models, classes, backgrounds, plan, background_
 
 with st.sidebar:
     st.header("1. Project")
-    output_dir = Path(st.text_input(
-        "Output folder",
-        "outputs/dataset",
-        help=help_text("Folder where images, labels, depth data and data.yaml will be written."),
-    ))
+    output_dir_text = st.text_input(
+        "Output folder (optional)",
+        "",
+        help=help_text("Leave blank to use temporary session storage. Set a path only when running locally."),
+    )
+    output_dir = (
+        Path(output_dir_text).expanduser()
+        if output_dir_text.strip()
+        else st.session_state.session_output_dir
+    )
     st.header("2. STL models")
     uploads = st.file_uploader(
         "Upload STL files",
@@ -318,6 +325,8 @@ if not brightness_min <= brightness_max:
     config_panel.warning("Minimum brightness cannot be greater than maximum brightness.")
 if negative_ratio + 0.0 > 1.0:
     config_panel.warning("The proportion of images without objects must be between 0 and 1.")
+if available_object_count < 2 or not any(count >= 2 and ratio > 0 for count, ratio in object_ratios.items()):
+    config_panel.info("Minimum separation applies only to scenes containing at least two objects.")
 
 rotation_axes_by_class = {}
 rotation_step_by_class_deg = {}
@@ -675,7 +684,6 @@ if job:
 
 st.header("7. Results and export")
 st.info("The output folder contains images/train, images/val, images/test, labels, masks, depth, COCO annotations, reports, data.yaml and generation_config.json.")
-st.caption("Default path: C:\\Users\\jaime\\synthetic-dataset-generator\\outputs\\dataset")
 saved_generation = st.session_state.get("generation_result")
 saved_output_path = (
     Path(saved_generation["output_dir"])
