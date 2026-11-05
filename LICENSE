@@ -1,21 +1,88 @@
-MIT License
+Synthetic Scene Forge - Restricted Use License
 
-Copyright (c) 2026 JaimeMontalvo55
+Copyright (c) 2026 JaimeMontalvo55. All rights reserved.
+
+1. Grant of Permission
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+of this software and its associated documentation files (the "Software"), to
+use, study, reproduce, and modify the Software solely for personal,
+educational, academic, and non-commercial research purposes, subject to the
+conditions set forth below.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+2. Attribution and Ownership
+
+The original Software, including its source code, architecture, design,
+documentation, and original components, remains the intellectual property of
+its original author, JaimeMontalvo55.
+
+Any use, reproduction, modification, or redistribution of the Software must
+preserve the original copyright notice and this license.
+
+Users must clearly acknowledge the original project and its author in any
+publication, presentation, repository, or derivative work that incorporates
+substantial portions of the Software.
+
+No permission granted under this license shall be interpreted as a transfer of
+ownership or intellectual property rights.
+
+3. Restrictions
+
+Without prior written permission from the copyright holder, you may not:
+
+- Claim authorship or ownership of the original Software or any substantial
+  portion of it.
+- Remove, alter, or conceal copyright notices, attribution, or references to
+  the original project.
+- Sell, license, sublicense, or otherwise commercially exploit the Software or
+  derivative works.
+- Incorporate the Software or substantial portions of it into proprietary or
+  commercial products or services.
+- Redistribute modified versions in a way that misrepresents their origin or
+  conceals their relationship to the original Software.
+- Register the original Software, or substantial portions of it, as your own
+  intellectual property.
+
+4. Derivative Works
+
+You may modify the Software for permitted non-commercial purposes.
+
+Any redistribution of modified versions must:
+
+- Preserve the original copyright notice and this license.
+- Clearly identify the modifications made.
+- Credit the original project and its author.
+- Include a reference to the original repository, where available.
+
+Your original contributions to a derivative work remain subject to their
+respective ownership rights, but this does not grant you ownership of the
+original Software or the right to restrict the permissions granted by this
+license.
+
+5. Commercial Use
+
+Any commercial use, commercial distribution, incorporation into commercial
+products or services, or other revenue-generating exploitation of the Software
+requires prior written authorization from the copyright holder.
+
+Commercial licensing may be granted separately under terms agreed upon with the
+copyright holder.
+
+6. No Trademark Rights
+
+This license does not grant permission to use the project's name, branding,
+logos, or other identifying marks in a way that suggests endorsement,
+affiliation, or official authorization.
+
+7. Termination
+
+Any violation of the terms of this license automatically terminates the
+permissions granted herein.
+
+8. Disclaimer of Warranty
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+LIABILITY ARISING FROM THE USE OF THE SOFTWARE.

@@ -9,7 +9,16 @@ The project does not contain ROS, perception nodes, or detectors.
 
 ## License
 
-This project is released under the MIT License. See [LICENSE](LICENSE).
+This project is released under the Synthetic Scene Forge Restricted Use
+License. See [LICENSE](LICENSE).
+
+This is a source-available license, not an OSI-approved open-source license.
+Personal, educational, academic, and non-commercial research use is permitted.
+Commercial use, commercial distribution, proprietary incorporation, and
+misrepresentation of origin require prior written authorization.
+
+Please preserve attribution and clearly identify modifications in redistributed
+versions. See [CITATION.cff](CITATION.cff) for the recommended citation.
 
 ## Installation
 
