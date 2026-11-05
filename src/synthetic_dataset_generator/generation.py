@@ -271,7 +271,7 @@ def render_preview(
             rgb, _ = renderer.render(scene)
             segmentation, _ = renderer.render(scene, flags=pyrender.RenderFlags.SEG, seg_node_map=nodes)
             _, masks, boxes, _ = _boxes(segmentation, classes, colors, config.width, config.height)
-            if _separated(boxes, config.min_separation_px):
+            if len(boxes) == len(object_names) and _separated(boxes, config.min_separation_px):
                 return Image.fromarray(_compose_background(rgb, masks, backgrounds or [], background_mode, config.width, config.height))
         raise RuntimeError(
             "Could not create a preview satisfying the configured minimum separation. "
