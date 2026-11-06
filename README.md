@@ -51,8 +51,8 @@ The project pins `pyglet<2` because it is compatible with `pyrender 0.1.x`.
 4. Set the main file to `app.py`.
 5. Deploy the app.
 
-The repository includes `packages.txt` for the Linux EGL/OpenGL libraries
-required by the offscreen renderer and `.streamlit/config.toml` for headless
+The repository includes `packages.txt` for the Linux Mesa/OSMesa libraries
+required by the software offscreen renderer and `.streamlit/config.toml` for headless
 server settings. STL and other uploaded files are limited to 400 MB per file.
 Streamlit Cloud storage is ephemeral, so generated datasets
 should be downloaded before the app restarts or the session ends.

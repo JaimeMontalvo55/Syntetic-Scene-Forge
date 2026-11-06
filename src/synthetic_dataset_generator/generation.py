@@ -9,7 +9,7 @@ from collections.abc import Callable
 import numpy as np
 
 if os.name != "nt" and "PYOPENGL_PLATFORM" not in os.environ:
-    os.environ["PYOPENGL_PLATFORM"] = "egl"
+    os.environ["PYOPENGL_PLATFORM"] = "osmesa"
 
 import pyrender
 import trimesh

@@ -1,7 +1,7 @@
 import os
 
 if os.name != "nt" and "PYOPENGL_PLATFORM" not in os.environ:
-    os.environ["PYOPENGL_PLATFORM"] = "egl"
+    os.environ["PYOPENGL_PLATFORM"] = "osmesa"
 
 import pyrender
 
