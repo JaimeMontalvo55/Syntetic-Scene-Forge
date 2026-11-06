@@ -6,6 +6,7 @@ if os.name != "nt" and "PYOPENGL_PLATFORM" not in os.environ:
 import pyrender
 
 from pyrender.constants import MIN_OPEN_GL_MAJOR, MIN_OPEN_GL_MINOR
+from pyrender.platforms.base import Platform
 from pyrender.renderer import Renderer
 from pyrender.platforms.pyglet_platform import PygletPlatform
 
@@ -77,10 +78,81 @@ class WindowsOffscreenRenderer(pyrender.OffscreenRenderer):
             raise
 
 
+class OSMesaOffscreenRenderer(pyrender.OffscreenRenderer):
+    """Use the OSMesa API available in the PyOpenGL version bundled by pyrender."""
+
+    def _create(self):
+        from OpenGL import arrays
+        from OpenGL import GL as gl
+        from OpenGL.osmesa import (
+            OSMesaCreateContextExt,
+            OSMesaDestroyContext,
+            OSMesaMakeCurrent,
+            OSMESA_RGBA,
+        )
+
+        class OSMesaPlatform(Platform):
+            def __init__(platform_self, viewport_width, viewport_height):
+                super().__init__(viewport_width, viewport_height)
+                platform_self._context = None
+                platform_self._buffer = None
+
+            def init_context(platform_self):
+                platform_self._context = OSMesaCreateContextExt(
+                    OSMESA_RGBA,
+                    24,
+                    0,
+                    0,
+                    None,
+                )
+                if platform_self._context is None:
+                    raise RuntimeError("OSMesa could not create a rendering context.")
+                platform_self._buffer = arrays.GLubyteArray.zeros(
+                    (platform_self.viewport_height, platform_self.viewport_width, 4)
+                )
+
+            def make_current(platform_self):
+                if not OSMesaMakeCurrent(
+                    platform_self._context,
+                    platform_self._buffer,
+                    gl.GL_UNSIGNED_BYTE,
+                    platform_self.viewport_width,
+                    platform_self.viewport_height,
+                ):
+                    raise RuntimeError("OSMesa could not activate the rendering context.")
+
+            def make_uncurrent(platform_self):
+                return None
+
+            def delete_context(platform_self):
+                if platform_self._context is not None:
+                    OSMesaDestroyContext(platform_self._context)
+                platform_self._context = None
+                platform_self._buffer = None
+
+            def supports_framebuffers(platform_self):
+                return False
+
+        self._platform = OSMesaPlatform(self.viewport_width, self.viewport_height)
+        try:
+            self._platform.init_context()
+            self._platform.make_current()
+            self._renderer = Renderer(
+                self.viewport_width,
+                self.viewport_height,
+                point_size=self.point_size,
+            )
+        except Exception:
+            self._platform.delete_context()
+            self._platform = None
+            raise
+
+
 def create_offscreen_renderer(width: int, height: int) -> pyrender.OffscreenRenderer:
     last_error = None
+    renderer_type = OSMesaOffscreenRenderer if os.environ.get("PYOPENGL_PLATFORM") == "osmesa" else pyrender.OffscreenRenderer
     try:
-        return pyrender.OffscreenRenderer(width, height)
+        return renderer_type(width, height)
     except Exception as error:
         last_error = error
     for _ in range(2):
