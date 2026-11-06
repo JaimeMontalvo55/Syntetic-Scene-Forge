@@ -6,6 +6,7 @@ import time
 from math import ceil
 
 import streamlit as st
+from OpenGL.error import GLError
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
@@ -79,7 +80,7 @@ def _run_generation(job, config, models, classes, backgrounds, plan, background_
             stop=job["cancel_event"].is_set,
             progress=update_progress,
         )
-    except (RuntimeError, ValueError, OSError) as error:
+    except (GLError, RuntimeError, ValueError, OSError) as error:
         job["error"] = str(error)
     finally:
         if job["cancel_event"].is_set():
@@ -406,7 +407,7 @@ with st.expander("Visualizador de ejes locales", expanded=True):
                         ),
                         width="stretch",
                     )
-        except (RuntimeError, ValueError, OSError) as error:
+        except (GLError, RuntimeError, ValueError, OSError) as error:
             st.warning(f"The axis viewer could not be displayed: {error}")
 
 
@@ -487,7 +488,7 @@ with preview_expander:
                     caption=f"{object_count} object(s)",
                     width="stretch",
                 )
-        except (RuntimeError, ValueError, OSError) as error:
+        except (GLError, RuntimeError, ValueError, OSError) as error:
             preview_error = str(error)
     if preview_error:
         st.warning(f"The preview could not be updated: {preview_error}")
@@ -568,7 +569,7 @@ if st.button("Generate dataset", type="primary"):
             st.session_state.generation_result = None
             job["thread"].start()
             st.rerun()
-        except (RuntimeError, ValueError, OSError) as error:
+        except (GLError, RuntimeError, ValueError, OSError) as error:
             st.error(str(error))
 
 job = st.session_state.generation_job
