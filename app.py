@@ -307,7 +307,6 @@ for index, count in enumerate(range(1, available_object_count + 1)):
             f"{count} object(s)",
             min_value=0.0,
             max_value=1.0,
-            value=default_object_ratios[count],
             step=0.1,
             format="%.2f",
             key=f"object_ratio_{count}",
