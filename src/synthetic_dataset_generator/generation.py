@@ -2,10 +2,15 @@ import json
 import random
 import time
 import colorsys
+import os
 from pathlib import Path
 from collections.abc import Callable
 
 import numpy as np
+
+if os.name != "nt" and "PYOPENGL_PLATFORM" not in os.environ:
+    os.environ["PYOPENGL_PLATFORM"] = "egl"
+
 import pyrender
 import trimesh
 from PIL import Image
