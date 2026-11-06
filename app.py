@@ -156,6 +156,7 @@ with st.sidebar:
         accept_multiple_files=True,
         help=help_text("Upload one or more 3D models. Each model can appear as an independent class."),
     )
+    st.caption("Maximum upload size: 400 MB per file.")
     current_model_files = {
         Path(upload.name).stem: upload
         for upload in uploads or []

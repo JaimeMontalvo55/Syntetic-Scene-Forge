@@ -53,7 +53,8 @@ The project pins `pyglet<2` because it is compatible with `pyrender 0.1.x`.
 
 The repository includes `packages.txt` for the Linux EGL/OpenGL libraries
 required by the offscreen renderer and `.streamlit/config.toml` for headless
-server settings. Streamlit Cloud storage is ephemeral, so generated datasets
+server settings. STL and other uploaded files are limited to 400 MB per file.
+Streamlit Cloud storage is ephemeral, so generated datasets
 should be downloaded before the app restarts or the session ends.
 
 The application supports any number of STL files, class names, random colors,
