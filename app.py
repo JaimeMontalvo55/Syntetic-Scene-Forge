@@ -39,7 +39,7 @@ if "generation_result" not in st.session_state:
 if "generation_error" not in st.session_state:
     st.session_state.generation_error = None
 if "session_output_dir" not in st.session_state:
-    st.session_state.session_output_dir = Path(tempfile.mkdtemp(prefix="synthetic_scene_forge_"))
+    st.session_state.session_output_dir = tempfile.mkdtemp(prefix="synthetic_scene_forge_")
 
 
 def help_text(text: str) -> str:
@@ -147,7 +147,7 @@ with st.sidebar:
     output_dir = (
         Path(output_dir_text).expanduser()
         if output_dir_text.strip()
-        else st.session_state.session_output_dir
+        else Path(st.session_state.session_output_dir)
     )
     st.header("2. STL models")
     uploads = st.file_uploader(
