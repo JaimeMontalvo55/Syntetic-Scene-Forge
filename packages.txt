@@ -1,4 +1,5 @@
 libegl1
 libgl1
 libgles2
+libglu1-mesa
 libosmesa6
