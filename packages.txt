@@ -1,6 +1,8 @@
 libosmesa6
 libosmesa6-dev
+libgl1
 libgl1-mesa-dri
 libglapi-mesa
 libglu1-mesa
+libglu1-mesa-dev
 mesa-utils
