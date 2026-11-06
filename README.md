@@ -56,6 +56,8 @@ required by the offscreen renderer and `.streamlit/config.toml` for headless
 server settings. STL and other uploaded files are limited to 400 MB per file.
 Streamlit Cloud storage is ephemeral, so generated datasets
 should be downloaded before the app restarts or the session ends.
+The Python dependencies are bounded to the tested major-version ranges in
+`requirements.txt` to keep local and Cloud deployments reproducible.
 
 The application supports any number of STL files, class names, random colors,
 images and videos, generation settings, and output in `images`, `labels`,
