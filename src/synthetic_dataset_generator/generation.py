@@ -241,29 +241,47 @@ def render_preview(
     preview_values = preview_values or {}
     renderer = create_offscreen_renderer(config.width, config.height)
     try:
-        scene = _scene(config)
-        nodes = {}
-        for name in object_names:
-            mesh = pyrender.Mesh.from_trimesh(
-                models[name],
-                material=_material(config, preview_values.get("brightness")),
-                smooth=False,
-            )
-            transform, _ = _transform(
-                models[name],
-                config,
-                distance=preview_values.get("distance"),
-                x=preview_values.get("x"),
-                y=preview_values.get("y"),
-                rotation_axes=config.rotation_axes_by_class.get(name, ["x", "y", "z"]),
-                rotation_step_deg=config.rotation_step_by_class_deg.get(name, 45.0),
-                initial_rotation_deg=config.initial_rotation_by_class_deg.get(name),
-            )
-            nodes[scene.add(mesh, pose=transform)] = colors[name]
-        rgb, _ = renderer.render(scene)
-        segmentation, _ = renderer.render(scene, flags=pyrender.RenderFlags.SEG, seg_node_map=nodes)
-        _, masks, _, _ = _boxes(segmentation, classes, colors, config.width, config.height)
-        return Image.fromarray(_compose_background(rgb, masks, backgrounds or [], background_mode, config.width, config.height))
+        max_preview_attempts = 100
+        for _ in range(max_preview_attempts):
+            scene = _scene(config)
+            nodes = {}
+            for name in object_names:
+                mesh = pyrender.Mesh.from_trimesh(
+                    models[name],
+                    material=_material(config, preview_values.get("brightness")),
+                    smooth=False,
+                )
+                fixed_x = preview_values.get("x") if len(object_names) == 1 else None
+                fixed_y = preview_values.get("y") if len(object_names) == 1 else None
+                transform, _ = _transform(
+                    models[name],
+                    config,
+                    distance=preview_values.get("distance"),
+                    x=fixed_x,
+                    y=fixed_y,
+                    rotation_axes=config.rotation_axes_by_class.get(name, ["x", "y", "z"]),
+                    rotation_step_deg=config.rotation_step_by_class_deg.get(name, 45.0),
+                    initial_rotation_deg=config.initial_rotation_by_class_deg.get(name),
+                )
+                nodes[scene.add(mesh, pose=transform)] = colors[name]
+            rgb, _ = renderer.render(scene)
+            segmentation, _ = renderer.render(scene, flags=pyrender.RenderFlags.SEG, seg_node_map=nodes)
+            _, masks, boxes, _ = _boxes(segmentation, classes, colors, config.width, config.height)
+            if _separated(boxes, config.min_separation_px):
+                return Image.fromarray(
+                    _compose_background(
+                        rgb,
+                        masks,
+                        backgrounds or [],
+                        background_mode,
+                        config.width,
+                        config.height,
+                    )
+                )
+        raise RuntimeError(
+            "Could not create a preview satisfying the configured minimum separation. "
+            "Increase the position ranges or reduce the minimum separation."
+        )
     finally:
         renderer.delete()
 
