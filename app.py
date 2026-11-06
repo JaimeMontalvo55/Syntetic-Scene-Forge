@@ -251,7 +251,6 @@ for index, count in enumerate(range(1, available_object_count + 1)):
             f"{count} object(s)",
             min_value=0.0,
             max_value=1.0,
-            value=default_object_ratios[count],
             step=0.1,
             format="%.2f",
             key=f"object_ratio_{count}",
@@ -405,7 +404,7 @@ with st.expander("Visualizador de ejes locales", expanded=True):
                             orientation_models[class_names[name]],
                             initial_rotation_by_class_deg[class_names[name]],
                         ),
-                        use_container_width=True,
+                        width="stretch",
                     )
         except (RuntimeError, ValueError, OSError) as error:
             st.warning(f"The axis viewer could not be displayed: {error}")
@@ -486,7 +485,7 @@ with preview_expander:
                 st.image(
                     preview,
                     caption=f"{object_count} object(s)",
-                    use_container_width=True,
+                    width="stretch",
                 )
         except (RuntimeError, ValueError, OSError) as error:
             preview_error = str(error)
