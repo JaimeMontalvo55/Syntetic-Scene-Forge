@@ -2,10 +2,15 @@ import json
 import random
 import time
 import colorsys
+import os
 from pathlib import Path
 from collections.abc import Callable
 
+if os.name != "nt" and "PYOPENGL_PLATFORM" not in os.environ:
+    os.environ["PYOPENGL_PLATFORM"] = "egl"
+
 import numpy as np
+from OpenGL.error import GLError
 import pyrender
 import trimesh
 from PIL import Image
@@ -22,6 +27,13 @@ from .rendering import create_offscreen_renderer
 
 
 CAMERA_Z_M = 3.5
+
+
+def _delete_renderer(renderer) -> None:
+    try:
+        renderer.delete()
+    except GLError:
+        pass
 
 
 def _segmentation_colors(classes: dict[str, int]) -> dict[str, list[int]]:
@@ -283,7 +295,7 @@ def render_preview(
             "Increase the position ranges or reduce the minimum separation."
         )
     finally:
-        renderer.delete()
+        _delete_renderer(renderer)
 
 
 def _axis_mesh(axis: str, length: float, color: list[float]) -> trimesh.Trimesh:
@@ -364,7 +376,7 @@ def render_orientation_preview(
         color, _ = renderer.render(scene)
         return Image.fromarray(color)
     finally:
-        renderer.delete()
+        _delete_renderer(renderer)
 
 
 def generate(config: GenerationConfig, models, classes, backgrounds, plan, background_mode="images", stop: Callable[[], bool] | None = None, progress: Callable[[int, int, str], None] | None = None) -> dict:
@@ -570,7 +582,7 @@ def generate(config: GenerationConfig, models, classes, backgrounds, plan, backg
             generated += 1
             report_progress("Última escena guardada.")
     finally:
-        renderer.delete()
+        _delete_renderer(renderer)
     elapsed = time.perf_counter() - started_at
     report.update({
         "generated_images": generated,
