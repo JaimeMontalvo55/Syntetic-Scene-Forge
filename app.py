@@ -1,10 +1,8 @@
 from pathlib import Path
-from io import BytesIO
 import sys
 import tempfile
 import threading
 import time
-from zipfile import ZIP_DEFLATED, ZipFile
 from math import ceil
 
 import streamlit as st
@@ -36,10 +34,6 @@ if "generation_job" not in st.session_state:
     st.session_state.generation_job = None
 if "generation_result" not in st.session_state:
     st.session_state.generation_result = None
-if "generation_error" not in st.session_state:
-    st.session_state.generation_error = None
-if "session_output_dir" not in st.session_state:
-    st.session_state.session_output_dir = tempfile.mkdtemp(prefix="synthetic_scene_forge_")
 
 
 def help_text(text: str) -> str:
@@ -66,50 +60,6 @@ def _remove_generated_files(output_dir: Path, files_before: set[Path]) -> None:
 
 def _folder_link(label: str, path: Path) -> str:
     return f"[{label}]({path.resolve().as_uri()})"
-
-
-def _zip_directory(directory: Path) -> bytes:
-    archive = BytesIO()
-    with ZipFile(archive, "w", ZIP_DEFLATED) as zip_file:
-        for path in sorted(directory.rglob("*")):
-            if path.is_file():
-                zip_file.write(path, path.relative_to(directory))
-    return archive.getvalue()
-
-
-def _show_downloads(
-    output_path: Path,
-    dataset_zip: bytes | None = None,
-    config_data: bytes | None = None,
-) -> None:
-    if dataset_zip is None:
-        if not output_path.exists():
-            return
-        dataset_zip = _zip_directory(output_path)
-    if config_data is None:
-        config_path = output_path / "generation_config.json"
-        if config_path.is_file():
-            config_data = config_path.read_bytes()
-    st.download_button(
-        "Download complete dataset (ZIP)",
-        data=dataset_zip,
-        file_name="synthetic_dataset.zip",
-        mime="application/zip",
-        key="download_dataset_zip",
-        help="Downloads images, labels, masks, metadata, COCO annotations, reports and configuration.",
-    )
-    if config_data is not None:
-        st.download_button(
-            "Download generation configuration",
-            data=config_data,
-            file_name="generation_config.json",
-            mime="application/json",
-            key="download_generation_config",
-        )
-
-
-def _dataset_is_ready(output_path: Path) -> bool:
-    return output_path.exists() and any(path.is_file() for path in output_path.rglob("*"))
 
 
 def _run_generation(job, config, models, classes, backgrounds, plan, background_mode):
@@ -139,16 +89,11 @@ def _run_generation(job, config, models, classes, backgrounds, plan, background_
 
 with st.sidebar:
     st.header("1. Project")
-    output_dir_text = st.text_input(
-        "Output folder (optional)",
-        "",
-        help=help_text("Leave blank to use temporary session storage. Set a path only when running locally."),
-    )
-    output_dir = (
-        Path(output_dir_text).expanduser()
-        if output_dir_text.strip()
-        else Path(st.session_state.session_output_dir)
-    )
+    output_dir = Path(st.text_input(
+        "Output folder",
+        "outputs/dataset",
+        help=help_text("Folder where images, labels, depth data and data.yaml will be written."),
+    ))
     st.header("2. STL models")
     uploads = st.file_uploader(
         "Upload STL files",
@@ -156,7 +101,6 @@ with st.sidebar:
         accept_multiple_files=True,
         help=help_text("Upload one or more 3D models. Each model can appear as an independent class."),
     )
-    st.caption("Maximum upload size: 400 MB per file.")
     current_model_files = {
         Path(upload.name).stem: upload
         for upload in uploads or []
@@ -307,6 +251,7 @@ for index, count in enumerate(range(1, available_object_count + 1)):
             f"{count} object(s)",
             min_value=0.0,
             max_value=1.0,
+            value=default_object_ratios[count],
             step=0.1,
             format="%.2f",
             key=f"object_ratio_{count}",
@@ -325,8 +270,6 @@ if not brightness_min <= brightness_max:
     config_panel.warning("Minimum brightness cannot be greater than maximum brightness.")
 if negative_ratio + 0.0 > 1.0:
     config_panel.warning("The proportion of images without objects must be between 0 and 1.")
-if available_object_count < 2 or not any(count >= 2 and ratio > 0 for count, ratio in object_ratios.items()):
-    config_panel.info("Minimum separation applies only to scenes containing at least two objects.")
 
 rotation_axes_by_class = {}
 rotation_step_by_class_deg = {}
@@ -462,7 +405,7 @@ with st.expander("Visualizador de ejes locales", expanded=True):
                             orientation_models[class_names[name]],
                             initial_rotation_by_class_deg[class_names[name]],
                         ),
-                        width="stretch",
+                        use_container_width=True,
                     )
         except (RuntimeError, ValueError, OSError) as error:
             st.warning(f"The axis viewer could not be displayed: {error}")
@@ -498,7 +441,6 @@ with preview_expander:
                 object_brightness_max=preview_brightness_max,
                 negative_ratio=0.0,
                 save_masks=save_masks,
-                min_separation_px=min_separation,
                 rotation_axes_by_class=rotation_axes_by_class,
                 rotation_step_by_class_deg=rotation_step_by_class_deg,
                 initial_rotation_by_class_deg=initial_rotation_by_class_deg,
@@ -544,7 +486,7 @@ with preview_expander:
                 st.image(
                     preview,
                     caption=f"{object_count} object(s)",
-                    width="stretch",
+                    use_container_width=True,
                 )
         except (RuntimeError, ValueError, OSError) as error:
             preview_error = str(error)
@@ -625,7 +567,6 @@ if st.button("Generate dataset", type="primary"):
             )
             st.session_state.generation_job = job
             st.session_state.generation_result = None
-            st.session_state.generation_error = None
             job["thread"].start()
             st.rerun()
         except (RuntimeError, ValueError, OSError) as error:
@@ -645,7 +586,6 @@ if job:
         st.rerun()
     elif job["error"]:
         st.error(job["error"])
-        st.session_state.generation_error = job["error"]
         st.session_state.generation_job = None
     elif job["result"] is not None:
         if job["cancel_event"].is_set():
@@ -654,16 +594,6 @@ if job:
             st.success(f"Generation complete: {job['result']['generated']} images.")
             st.json(job["result"])
             output_path = Path(job["output_dir"])
-            st.session_state.generation_result = {
-                "result": job["result"],
-                "output_dir": str(output_path),
-                "dataset_zip": _zip_directory(output_path),
-                "config_data": (
-                    (output_path / "generation_config.json").read_bytes()
-                    if (output_path / "generation_config.json").is_file()
-                    else None
-                ),
-            }
             st.subheader("Generated folders and files")
             coco_links = [
                 f"- {_folder_link(path.name, path)}"
@@ -681,28 +611,9 @@ if job:
                     f"- {_folder_link('Generation configuration', output_path / 'generation_config.json')}",
                 ] + coco_links)
             )
+        st.session_state.generation_result = job["result"]
         st.session_state.generation_job = None
 
 st.header("7. Results and export")
 st.info("The output folder contains images/train, images/val, images/test, labels, masks, depth, COCO annotations, reports, data.yaml and generation_config.json.")
-saved_generation = st.session_state.get("generation_result")
-saved_output_path = (
-    Path(saved_generation["output_dir"])
-    if saved_generation
-    else output_dir
-)
-if st.session_state.get("generation_error"):
-    st.error(f"Generation failed: {st.session_state.generation_error}")
-elif saved_generation and saved_generation.get("dataset_zip"):
-    st.success("The generated dataset is ready to download.")
-    _show_downloads(
-        saved_output_path,
-        saved_generation["dataset_zip"],
-        saved_generation.get("config_data"),
-    )
-elif _dataset_is_ready(output_dir):
-    file_count = len(_output_files(output_dir))
-    st.success(f"Generated dataset found: {file_count} files available for download.")
-    _show_downloads(output_dir)
-else:
-    st.caption("Generate a dataset to enable the download buttons. The buttons appear here as soon as output files are available.")
+st.caption("Default path: C:\\Users\\jaime\\synthetic-dataset-generator\\outputs\\dataset")

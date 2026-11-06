@@ -9,16 +9,7 @@ The project does not contain ROS, perception nodes, or detectors.
 
 ## License
 
-This project is released under the Synthetic Scene Forge Restricted Use
-License. See [LICENSE](LICENSE).
-
-This is a source-available license, not an OSI-approved open-source license.
-Personal, educational, academic, and non-commercial research use is permitted.
-Commercial use, commercial distribution, proprietary incorporation, and
-misrepresentation of origin require prior written authorization.
-
-Please preserve attribution and clearly identify modifications in redistributed
-versions. See [CITATION.cff](CITATION.cff) for the recommended citation.
+This project is released under the MIT License. See [LICENSE](LICENSE).
 
 ## Installation
 
@@ -51,13 +42,10 @@ The project pins `pyglet<2` because it is compatible with `pyrender 0.1.x`.
 4. Set the main file to `app.py`.
 5. Deploy the app.
 
-The repository includes `packages.txt` for the Linux Mesa/OSMesa libraries
-required by the software offscreen renderer and `.streamlit/config.toml` for headless
-server settings. STL and other uploaded files are limited to 400 MB per file.
-Streamlit Cloud storage is ephemeral, so generated datasets
+The repository includes `packages.txt` for the Linux EGL/OpenGL libraries
+required by the offscreen renderer and `.streamlit/config.toml` for headless
+server settings. Streamlit Cloud storage is ephemeral, so generated datasets
 should be downloaded before the app restarts or the session ends.
-The Python dependencies are bounded to the tested major-version ranges in
-`requirements.txt` to keep local and Cloud deployments reproducible.
 
 The application supports any number of STL files, class names, random colors,
 images and videos, generation settings, and output in `images`, `labels`,
@@ -74,11 +62,6 @@ Generation runs in the background and provides a stop button. When canceled,
 files created during that run are deleted without removing files that already
 existed in the output folder. Combined mode alternates between random colors
 and image or video scenes.
-
-After generation, use **Download complete dataset (ZIP)** to download all
-images, labels, masks, metadata, COCO annotations, reports, and configuration.
-This download is required when using Streamlit Community Cloud because its
-generated files are stored temporarily on the app server.
 
 Depth position is configured in meters: mean distance is the center of the
 triangular distribution, while minimum and maximum distances define its

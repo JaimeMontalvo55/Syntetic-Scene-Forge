@@ -2,15 +2,10 @@ import json
 import random
 import time
 import colorsys
-import os
 from pathlib import Path
 from collections.abc import Callable
 
 import numpy as np
-
-if os.name != "nt" and "PYOPENGL_PLATFORM" not in os.environ:
-    os.environ["PYOPENGL_PLATFORM"] = "osmesa"
-
 import pyrender
 import trimesh
 from PIL import Image
@@ -155,17 +150,13 @@ def _coco_scene_annotations(
 
 
 def _separated(boxes: dict[str, tuple[int, int, int, int]], minimum: int) -> bool:
-    if minimum <= 0 or len(boxes) < 2:
-        return True
     names = list(boxes)
     for index, first in enumerate(names):
         ax1, ay1, ax2, ay2 = boxes[first]
         for second in names[index + 1:]:
             bx1, by1, bx2, by2 = boxes[second]
-            horizontal_gap = max(ax1 - bx2 - 1, bx1 - ax2 - 1, 0)
-            vertical_gap = max(ay1 - by2 - 1, by1 - ay2 - 1, 0)
-            edge_distance = (horizontal_gap**2 + vertical_gap**2) ** 0.5
-            if edge_distance < minimum:
+            distance = ((max(ax1 - bx2, bx1 - ax2, 0)) ** 2 + (max(ay1 - by2, by1 - ay2, 0)) ** 2) ** 0.5
+            if distance < minimum:
                 return False
     return True
 
@@ -250,38 +241,29 @@ def render_preview(
     preview_values = preview_values or {}
     renderer = create_offscreen_renderer(config.width, config.height)
     try:
-        max_preview_attempts = 100
-        for _ in range(max_preview_attempts):
-            scene = _scene(config)
-            nodes = {}
-            for name in object_names:
-                mesh = pyrender.Mesh.from_trimesh(
-                    models[name],
-                    material=_material(config, preview_values.get("brightness")),
-                    smooth=False,
-                )
-                fixed_x = preview_values.get("x") if len(object_names) == 1 else None
-                fixed_y = preview_values.get("y") if len(object_names) == 1 else None
-                transform, _ = _transform(
-                    models[name],
-                    config,
-                    distance=preview_values.get("distance"),
-                    x=fixed_x,
-                    y=fixed_y,
-                    rotation_axes=config.rotation_axes_by_class.get(name, ["x", "y", "z"]),
-                    rotation_step_deg=config.rotation_step_by_class_deg.get(name, 45.0),
-                    initial_rotation_deg=config.initial_rotation_by_class_deg.get(name),
-                )
-                nodes[scene.add(mesh, pose=transform)] = colors[name]
-            rgb, _ = renderer.render(scene)
-            segmentation, _ = renderer.render(scene, flags=pyrender.RenderFlags.SEG, seg_node_map=nodes)
-            _, masks, boxes, _ = _boxes(segmentation, classes, colors, config.width, config.height)
-            if len(boxes) == len(object_names) and _separated(boxes, config.min_separation_px):
-                return Image.fromarray(_compose_background(rgb, masks, backgrounds or [], background_mode, config.width, config.height))
-        raise RuntimeError(
-            "Could not create a preview satisfying the configured minimum separation. "
-            "Increase the position ranges or reduce the minimum separation."
-        )
+        scene = _scene(config)
+        nodes = {}
+        for name in object_names:
+            mesh = pyrender.Mesh.from_trimesh(
+                models[name],
+                material=_material(config, preview_values.get("brightness")),
+                smooth=False,
+            )
+            transform, _ = _transform(
+                models[name],
+                config,
+                distance=preview_values.get("distance"),
+                x=preview_values.get("x"),
+                y=preview_values.get("y"),
+                rotation_axes=config.rotation_axes_by_class.get(name, ["x", "y", "z"]),
+                rotation_step_deg=config.rotation_step_by_class_deg.get(name, 45.0),
+                initial_rotation_deg=config.initial_rotation_by_class_deg.get(name),
+            )
+            nodes[scene.add(mesh, pose=transform)] = colors[name]
+        rgb, _ = renderer.render(scene)
+        segmentation, _ = renderer.render(scene, flags=pyrender.RenderFlags.SEG, seg_node_map=nodes)
+        _, masks, _, _ = _boxes(segmentation, classes, colors, config.width, config.height)
+        return Image.fromarray(_compose_background(rgb, masks, backgrounds or [], background_mode, config.width, config.height))
     finally:
         renderer.delete()
 
