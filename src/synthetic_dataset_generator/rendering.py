@@ -121,6 +121,9 @@ class OSMesaOffscreenRenderer(pyrender.OffscreenRenderer):
                     raise RuntimeError("OSMesa did not expose an active rendering context.")
                 platform.GetCurrentContext = lambda: context_id
                 platform.CurrentContextIsValid = lambda: bool(context_id)
+                platform.PLATFORM.GetCurrentContext = lambda: context_id
+                platform.PLATFORM.CurrentContextIsValid = lambda: bool(context_id)
+                platform.PLATFORM.checkExtension = lambda extension: True
 
             def make_uncurrent(platform_self):
                 return None
