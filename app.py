@@ -6,7 +6,6 @@ import time
 from math import ceil
 
 import streamlit as st
-from OpenGL.error import GLError
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
@@ -80,8 +79,8 @@ def _run_generation(job, config, models, classes, backgrounds, plan, background_
             stop=job["cancel_event"].is_set,
             progress=update_progress,
         )
-    except (GLError, RuntimeError, ValueError, OSError) as error:
-        job["error"] = str(error)
+    except Exception as error:
+        job["error"] = f"{type(error).__name__}: {error}"
     finally:
         if job["cancel_event"].is_set():
             _remove_generated_files(config.output_dir, job["files_before"])
@@ -407,8 +406,11 @@ with st.expander("Visualizador de ejes locales", expanded=True):
                         ),
                         width="stretch",
                     )
-        except (GLError, RuntimeError, ValueError, OSError) as error:
-            st.warning(f"The axis viewer could not be displayed: {error}")
+        except Exception as error:
+            st.warning(
+                f"The axis viewer could not be displayed "
+                f"({type(error).__name__}): {error}"
+            )
 
 
 preview_error = None
@@ -488,8 +490,8 @@ with preview_expander:
                     caption=f"{object_count} object(s)",
                     width="stretch",
                 )
-        except (GLError, RuntimeError, ValueError, OSError) as error:
-            preview_error = str(error)
+        except Exception as error:
+            preview_error = f"{type(error).__name__}: {error}"
     if preview_error:
         st.warning(f"The preview could not be updated: {preview_error}")
     elif not selected:
@@ -569,8 +571,8 @@ if st.button("Generate dataset", type="primary"):
             st.session_state.generation_result = None
             job["thread"].start()
             st.rerun()
-        except (GLError, RuntimeError, ValueError, OSError) as error:
-            st.error(str(error))
+        except Exception as error:
+            st.error(f"{type(error).__name__}: {error}")
 
 job = st.session_state.generation_job
 if job:
