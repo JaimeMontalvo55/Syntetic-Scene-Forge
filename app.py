@@ -30,6 +30,8 @@ if "scenario_images" not in st.session_state:
     st.session_state.scenario_images = []
 if "last_preview_change" not in st.session_state:
     st.session_state.last_preview_change = "initial"
+if "preview_dirty" not in st.session_state:
+    st.session_state.preview_dirty = False
 if "generation_job" not in st.session_state:
     st.session_state.generation_job = None
 if "generation_result" not in st.session_state:
@@ -42,6 +44,7 @@ def help_text(text: str) -> str:
 
 def mark_preview_change(name: str) -> None:
     st.session_state.last_preview_change = name
+    st.session_state.preview_dirty = True
 
 
 def _output_files(output_dir: Path) -> set[Path]:
@@ -401,6 +404,8 @@ with st.expander("Visualizador de ejes locales", expanded=True):
     )
     if generation_active:
         st.info("The axis viewer is paused while the dataset is generated.")
+    elif st.session_state.preview_dirty:
+        st.info("The axis viewer is paused until the preview is updated.")
     elif show_axis_viewer and selected:
         try:
             _, orientation_models, _, _ = load_uploaded_inputs()
@@ -427,6 +432,11 @@ preview_error = None
 with preview_expander:
     if generation_active:
         st.info("The preview is paused while the dataset is generated to avoid OpenGL conflicts.")
+    elif st.session_state.preview_dirty:
+        if st.button("Update preview", type="primary", key="update_preview"):
+            st.session_state.preview_dirty = False
+            st.rerun()
+        st.info("Change the parameters freely, then update the preview once.")
     elif selected:
         try:
             _, preview_models, preview_classes, preview_backgrounds = load_uploaded_inputs()
