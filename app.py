@@ -17,6 +17,7 @@ from synthetic_dataset_generator.generation import (
     render_orientation_preview,
     render_preview,
 )
+from synthetic_dataset_generator.export import create_dataset_archive
 from synthetic_dataset_generator.sources import extract_video_frames
 
 
@@ -634,4 +635,15 @@ if job:
 
 st.header("7. Results and export")
 st.info("The output folder contains images/train, images/val, images/test, labels, masks, depth, COCO annotations, reports, data.yaml and generation_config.json.")
+if output_dir.exists():
+    try:
+        st.download_button(
+            "Download dataset (.zip)",
+            data=create_dataset_archive(output_dir),
+            file_name=f"{output_dir.name}.zip",
+            mime="application/zip",
+            help="Download all generated files as a ZIP archive.",
+        )
+    except OSError as error:
+        st.error(f"The dataset could not be prepared for download: {error}")
 st.caption("Default path: C:\\Users\\jaime\\synthetic-dataset-generator\\outputs\\dataset")

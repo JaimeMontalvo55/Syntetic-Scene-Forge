@@ -46,6 +46,8 @@ The repository includes `packages.txt` for the Linux EGL/OpenGL libraries
 required by the offscreen renderer and `.streamlit/config.toml` for headless
 server settings. Streamlit Cloud storage is ephemeral, so generated datasets
 should be downloaded before the app restarts or the session ends.
+After generation, use the **Download dataset (.zip)** button to download all
+generated files from the app.
 
 The application supports any number of STL files, class names, random colors,
 images and videos, generation settings, and output in `images`, `labels`,

@@ -1,5 +1,7 @@
-from pathlib import Path
+from io import BytesIO
 import json
+from pathlib import Path
+from zipfile import ZIP_DEFLATED, ZipFile
 
 
 def prepare_output(output_dir: Path) -> None:
@@ -41,3 +43,12 @@ def write_generation_report(output_dir: Path, report: dict) -> None:
         json.dumps(report, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
+
+
+def create_dataset_archive(output_dir: Path) -> bytes:
+    archive = BytesIO()
+    with ZipFile(archive, "w", compression=ZIP_DEFLATED) as zip_file:
+        for path in sorted(output_dir.rglob("*")):
+            if path.is_file():
+                zip_file.write(path, path.relative_to(output_dir))
+    return archive.getvalue()
