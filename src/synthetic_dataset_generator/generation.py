@@ -1,4 +1,5 @@
 import json
+import logging
 import random
 import time
 import colorsys
@@ -10,7 +11,6 @@ if os.name != "nt" and "PYOPENGL_PLATFORM" not in os.environ:
     os.environ["PYOPENGL_PLATFORM"] = "egl"
 
 import numpy as np
-from OpenGL.error import GLError
 import pyrender
 import trimesh
 from PIL import Image
@@ -27,13 +27,14 @@ from .rendering import create_offscreen_renderer
 
 
 CAMERA_Z_M = 3.5
+LOGGER = logging.getLogger(__name__)
 
 
 def _delete_renderer(renderer) -> None:
     try:
         renderer.delete()
-    except GLError:
-        pass
+    except Exception as error:
+        LOGGER.warning("Renderer cleanup failed: %s", error)
 
 
 def _segmentation_colors(classes: dict[str, int]) -> dict[str, list[int]]:

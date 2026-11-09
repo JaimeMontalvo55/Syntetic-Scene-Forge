@@ -82,9 +82,13 @@ def _run_generation(job, config, models, classes, backgrounds, plan, background_
     except Exception as error:
         job["error"] = f"{type(error).__name__}: {error}"
     finally:
-        if job["cancel_event"].is_set():
-            _remove_generated_files(config.output_dir, job["files_before"])
-        job["finished"] = True
+        try:
+            if job["cancel_event"].is_set():
+                _remove_generated_files(config.output_dir, job["files_before"])
+        except Exception as error:
+            job["error"] = f"{type(error).__name__}: {error}"
+        finally:
+            job["finished"] = True
 
 
 with st.sidebar:
@@ -391,7 +395,13 @@ with st.expander("Visualizador de ejes locales", expanded=True):
         key="show_axis_viewer",
         help="Render each model centered with its local axes and configured initial orientation.",
     )
-    if show_axis_viewer and selected:
+    generation_active = (
+        st.session_state.generation_job is not None
+        and not st.session_state.generation_job["finished"]
+    )
+    if generation_active:
+        st.info("The axis viewer is paused while the dataset is generated.")
+    elif show_axis_viewer and selected:
         try:
             _, orientation_models, _, _ = load_uploaded_inputs()
             viewer_cols = st.columns(min(3, len(selected)))
@@ -414,10 +424,6 @@ with st.expander("Visualizador de ejes locales", expanded=True):
 
 
 preview_error = None
-generation_active = (
-    st.session_state.generation_job is not None
-    and not st.session_state.generation_job["finished"]
-)
 with preview_expander:
     if generation_active:
         st.info("The preview is paused while the dataset is generated to avoid OpenGL conflicts.")
